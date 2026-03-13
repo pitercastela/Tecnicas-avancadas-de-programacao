@@ -11,12 +11,13 @@ public final class TesteSobrecarga {
      */
     public static void main(final String[] args) {
         Calculadora calc = new Calculadora();
-        Scanner teclado = new Scanner(System.in);
-        int a = teclado.nextInt();
-        int b = teclado.nextInt();
-        int c = teclado.nextInt();
-        System.out.println(calc.somar(teclado.nextInt(), teclado.nextInt()));
+        Scanner tec = new Scanner(System.in);
+
+        System.out.println(calc.somar(tec.nextInt(), tec.nextInt()));
+        int a = tec.nextInt();
+        int b = tec.nextInt();
+        int c = tec.nextInt();
         System.out.println(calc.somar(a, b, c));
-        System.out.println(calc.somar(teclado.nextInt(), teclado.nextInt()));
+        System.out.println(calc.somar(tec.nextDouble(), tec.nextDouble()));
     }
 }
