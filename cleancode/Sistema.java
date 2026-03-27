@@ -10,7 +10,7 @@ public class Sistema {
     List<Pedido> pedidos = new ArrayList<>();
     Db database = new Db();
 
-    public void imprimeMenu() {
+    public void imprimirMenu() {
         System.out.println("==== SISTEMA ====");
         System.out.println("1 - Novo pedido");
         System.out.println("2 - Listar pedidos");
@@ -21,7 +21,7 @@ public class Sistema {
         System.out.print("Opcao: ");
     }
 
-    private int recebeInput(int op) {
+    private int receberInput(int op) {
         try {
             op = Integer.parseInt(sc.nextLine());
         } catch (Exception e) {
@@ -31,17 +31,17 @@ public class Sistema {
         }
         return op;
     }
-    private void selecionaMenu(int op) {
+    private void selecionarMenu(int op) {
         if (op == 1) {
-            novoPedido();
+            criarNovoPedido();
         } else if (op == 2) {
-            listar();
+            listarPedidos();
         } else if (op == 3) {
-            buscar();
+            buscarPedidos();
         } else if (op == 4) {
-            relatorio();
+            gerarRelatorio();
         } else if (op == 5) {
-            cancelar();
+            cancelarPedido();
         } else if (op == 0) {
             System.out.println("fim");
         } else {
@@ -49,19 +49,19 @@ public class Sistema {
         }
     }
 
-    public void run() {
+    public void rodarPrograma() {
         int op = -1;
 
         while (op != 0) {
-            imprimeMenu();
-            op = recebeInput(op);
-            selecionaMenu(op);
+            imprimirMenu();
+            op = receberInput(op);
+            selecionarMenu(op);
 
         }
     }
 
 
-    private Cliente iniciaCliente() {
+    private Cliente iniciarCliente() {
         System.out.println("Nome cliente:");
         String nomeCliente = sc.nextLine();
 
@@ -74,10 +74,10 @@ public class Sistema {
             tipoCliente = 1;
         }
 
-        return geraCliente(tipoCliente,nomeCliente);
+        return gerarCliente(tipoCliente,nomeCliente);
     }
 
-    private Cliente geraCliente(int tipoCliente, String nomeCliente) {
+    private Cliente gerarCliente(int tipoCliente, String nomeCliente) {
         Cliente novoCliente = new Cliente();
         novoCliente.id = database.pegarTodosPedidos().size() + 1;
         novoCliente.nome = nomeCliente;
@@ -87,7 +87,7 @@ public class Sistema {
         return novoCliente;
     }
 
-    private Pedido geraPedido(Cliente cliente) {
+    private Pedido gerarPedido(Cliente cliente) {
         Pedido pedido = new Pedido();
         pedido.id = database.pegarTodosPedidos().size() + 1;
         pedido.cliente = cliente;
@@ -97,7 +97,7 @@ public class Sistema {
         return pedido;
     }
 
-    private void recolheInformacoesItem(Pedido pedido) {
+    private void recolherInformacoesItem(Pedido pedido) {
         System.out.println("Nome item:");
         String nomeItem = sc.nextLine();
 
@@ -117,12 +117,12 @@ public class Sistema {
             quantidade = 1;
         }
 
-        Item item = geraItem(nomeItem, precoItem, quantidade);
+        Item item = gerarItem(nomeItem, precoItem, quantidade);
         pedido.itens.add(item);
 
     }
 
-    private Item geraItem(String nomeItem, double precoItem, int quantidade) {
+    private Item gerarItem(String nomeItem, double precoItem, int quantidade) {
         Item item = new Item();
         item.nome = nomeItem;
         item.preco = precoItem;
@@ -131,16 +131,16 @@ public class Sistema {
         return item;
     }
 
-    private void adiconaItensNoPedido(Pedido pedido) {
+    private void adiconarItensPedido(Pedido pedido) {
         String continua = "s";
         while (continua.equalsIgnoreCase("s")) {
-            recolheInformacoesItem(pedido);
+            recolherInformacoesItem(pedido);
             System.out.println("Adicionar mais item? s/n");
             continua = sc.nextLine();
         }
     }
 
-    private void mensagemDeConfirmacao(Pedido pedido) {
+    private void gerarMensagemConfirmacao(Pedido pedido) {
         System.out.println("Pedido criado com sucesso");
         System.out.println("Id: " + pedido.id);
         System.out.println("Cliente: " + pedido.cliente.nome);
@@ -151,18 +151,18 @@ public class Sistema {
         }
     }
 
-    private void novoPedido() {
-        Cliente cliente = iniciaCliente();
-        Pedido pedido = geraPedido(cliente);
+    private void criarNovoPedido() {
+        Cliente cliente = iniciarCliente();
+        Pedido pedido = gerarPedido(cliente);
 
-        adiconaItensNoPedido(pedido);
-        pedido.total = getTotal(pedido, cliente);
-        database.adicionaPedido(pedido);
+        adiconarItensPedido(pedido);
+        pedido.total = pegarTotal(pedido, cliente);
+        database.adicionarPedido(pedido);
 
-        mensagemDeConfirmacao(pedido);
+        gerarMensagemConfirmacao(pedido);
     }
 
-    private static double calculaDesconto(double total, Cliente cliente) {
+    private static double calcularDesconto(double total, Cliente cliente) {
         if (cliente.tipo == 1) {
             if (total > 300) {
                 total = total - (total * 0.05);
@@ -180,7 +180,7 @@ public class Sistema {
         return total;
     }
 
-    private static double calculaFrete(double total) {
+    private static double calcularFrete(double total) {
         if (total < 100) {
             total = total + 25;
         } else if (total >= 100 && total < 300) {
@@ -190,36 +190,26 @@ public class Sistema {
         return total;
     }
 
-    private static double getTotal(Pedido pedido, Cliente cliente) {
-        double total = pedido.calculaPrecoDoPedido();
+    private static double pegarTotal(Pedido pedido, Cliente cliente) {
+        double total = pedido.calcularPrecoPedido();
 
-        total = calculaDesconto(total, cliente);
-        total = calculaFrete(total);
+        total = calcularDesconto(total, cliente);
+        total = calcularFrete(total);
         return total;
     }
 
-    public void listar() {
+    public void listarPedidos() {
         if (database.pegarTodosPedidos().isEmpty()) {
             System.out.println("sem pedidos");
         } else {
-            for (Pedido p : database.pegarTodosPedidos()) {
+            for (Pedido pedido : database.pegarTodosPedidos()) {
                 System.out.println("---------------");
-                System.out.println("id: " + p.id);
-                System.out.println("cliente: " + p.cliente.nome);
-                System.out.println("email: " + p.cliente.email);
-                System.out.println("tipo: " + p.cliente.getTipoDesc());
-                System.out.println("status: " + p.status);
-                System.out.println("total: " + p.total);
-                System.out.println("itens:");
-                for (int j = 0; j < p.itens.size(); j++) {
-                    Item it = p.itens.get(j);
-                    System.out.println(it.nome + " - " + it.qtd + " - " + it.preco);
-                }
+                pedido.exibirPedido();
             }
         }
     }
 
-    public void buscar() {
+    public void buscarPedidos() {
         System.out.println("Digite o id:");
         int id = Integer.parseInt(sc.nextLine());
         boolean achou = false;
@@ -228,11 +218,7 @@ public class Sistema {
 
             if (pedidoEcontrado.id == id) {
                 achou = true;
-                System.out.println("Pedido encontrado");
-                System.out.println("id: " + pedidoEcontrado.id);
-                System.out.println("cliente: " + pedidoEcontrado.cliente.nome);
-                System.out.println("status: " + pedidoEcontrado.status);
-                System.out.println("total: " + pedidoEcontrado.total);
+
 
                 double subtotal = 0;
                 for (int j = 0; j < pedidoEcontrado.itens.size(); j++) {
@@ -262,12 +248,12 @@ public class Sistema {
         }
     }
 
-    public void relatorio() {
+    public void gerarRelatorio() {
         Relatorio relatorio = new Relatorio();
-        relatorio.gerar(database.pegarTodosPedidos());
+        relatorio.gerarRealtorios(database.pegarTodosPedidos());
     }
 
-    public void cancelar() {
+    public void cancelarPedido() {
         System.out.println("Digite id do pedido");
         int id = Integer.parseInt(sc.nextLine());
 

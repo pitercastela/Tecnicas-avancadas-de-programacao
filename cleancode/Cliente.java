@@ -6,7 +6,7 @@ public class Cliente {
     public String email;
     public int tipo; // 1 comum, 2 premium, 3 vip
 
-    public String getTipoDesc() {
+    public String pegarTipoDesc() {
         if (tipo == 1) {
             return "comum";
         } else if (tipo == 2) {

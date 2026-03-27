@@ -4,18 +4,18 @@ import java.util.List;
 
 public class Relatorio {
 
-    private int atualizaCancelados(Pedido pedido, int cancelados) {
+    private int atualizarCancelados(Pedido pedido, int cancelados) {
         if (pedido.status.equals("CANCELADO")) {
             cancelados++;
         }
         return cancelados;
     }
 
-    private double atualizaSoma(Pedido pedido, double soma){
+    private double atualizarSoma(Pedido pedido, double soma){
         return soma + pedido.total;
     }
 
-    private void escrevePedidos(Pedido pedido) {
+    private void escreverPedidos(Pedido pedido) {
         System.out.println("Pedido " + pedido.id + " - " + pedido.cliente.nome + " - " + pedido.total + " - " + pedido.status);
 
         for (int j = 0; j < pedido.itens.size(); j++) {
@@ -24,7 +24,7 @@ public class Relatorio {
         }
     }
 
-    private void escreveResultado(double soma, int qtd){
+    private void escreverResultado(double soma, int qtd){
         if (qtd > 0) {
             System.out.println("media: " + (soma / qtd));
         } else {
@@ -40,7 +40,7 @@ public class Relatorio {
         }
     }
 
-    public void gerar(List<Pedido> ps) {
+    public void gerarRealtorios(List<Pedido> ps) {
         System.out.println("======= RELATORIO =======");
 
         int qtd = 0;
@@ -52,9 +52,9 @@ public class Relatorio {
 
         for (Pedido pedido : ps) {
 
-            soma = atualizaSoma(pedido, soma);
+            soma = atualizarSoma(pedido, soma);
             qtd++;
-            cancelados = atualizaCancelados(pedido, cancelados);
+            cancelados = atualizarCancelados(pedido, cancelados);
 
             if (pedido.cliente.tipo == 1) {
                 comuns++;
@@ -64,7 +64,7 @@ public class Relatorio {
                 vips++;
             }
 
-            escrevePedidos(pedido);
+            escreverPedidos(pedido);
 
         }
 
@@ -76,6 +76,6 @@ public class Relatorio {
         System.out.println("clientes premium: " + premiums);
         System.out.println("clientes vip: " + vips);
 
-        escreveResultado(soma, qtd);
+        escreverResultado(soma, qtd);
     }
 }

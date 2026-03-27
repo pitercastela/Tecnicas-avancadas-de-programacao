@@ -5,7 +5,7 @@ public class Item {
     public double preco;
     public int qtd;
 
-    public double calculaPrecoTotal() {
+    public double calcularPrecoTotal() {
         return preco * qtd;
     }
 }
