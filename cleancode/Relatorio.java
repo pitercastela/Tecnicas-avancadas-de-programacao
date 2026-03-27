@@ -56,11 +56,11 @@ public class Relatorio {
             qtd++;
             cancelados = atualizarCancelados(pedido, cancelados);
 
-            if (pedido.cliente.tipo == 1) {
+            if (pedido.cliente.pegarTipoDesc().equals("Comum")) {
                 comuns++;
-            } else if (pedido.cliente.tipo == 2) {
+            } else if (pedido.cliente.pegarTipoDesc().equals("Premium")) {
                 premiums++;
-            } else if (pedido.cliente.tipo == 3) {
+            } else if (pedido.cliente.pegarTipoDesc().equals("Vip")) {
                 vips++;
             }
 

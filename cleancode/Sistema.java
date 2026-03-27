@@ -1,13 +1,11 @@
 package cleancode;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Sistema {
 
     Scanner sc = new Scanner(System.in);
-    List<Pedido> pedidos = new ArrayList<>();
     Db database = new Db();
 
     public void imprimirMenu() {
@@ -21,7 +19,8 @@ public class Sistema {
         System.out.print("Opcao: ");
     }
 
-    private int receberInput(int op) {
+    private int receberInput() {
+        int op;
         try {
             op = Integer.parseInt(sc.nextLine());
         } catch (Exception e) {
@@ -54,7 +53,7 @@ public class Sistema {
 
         while (op != 0) {
             imprimirMenu();
-            op = receberInput(op);
+            op = receberInput();
             selecionarMenu(op);
 
         }
@@ -66,7 +65,7 @@ public class Sistema {
         String nomeCliente = sc.nextLine();
 
         System.out.println("Tipo cliente (1 comum, 2 premium, 3 vip):");
-        int tipoCliente = 0;
+        int tipoCliente;
         try {
             tipoCliente = Integer.parseInt(sc.nextLine());
         } catch (Exception e) {
@@ -78,10 +77,18 @@ public class Sistema {
     }
 
     private Cliente gerarCliente(int tipoCliente, String nomeCliente) {
-        Cliente novoCliente = new Cliente();
+        Cliente novoCliente;
+
+        if (tipoCliente == 2) {
+            novoCliente = new ClientePremium();
+        } else if (tipoCliente == 3) {
+            novoCliente = new ClienteVip();
+        } else {
+            novoCliente = new ClienteComum();
+        }
+
         novoCliente.id = database.pegarTodosPedidos().size() + 1;
         novoCliente.nome = nomeCliente;
-        novoCliente.tipo = tipoCliente;
         novoCliente.email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
 
         return novoCliente;
@@ -102,7 +109,7 @@ public class Sistema {
         String nomeItem = sc.nextLine();
 
         System.out.println("Preco item:");
-        double precoItem = 0;
+        double precoItem;
         try {
             precoItem = Double.parseDouble(sc.nextLine());
         } catch (Exception e) {
@@ -110,7 +117,7 @@ public class Sistema {
         }
 
         System.out.println("Qtd:");
-        int quantidade = 0;
+        int quantidade;
         try {
             quantidade = Integer.parseInt(sc.nextLine());
         } catch (Exception e) {
@@ -156,46 +163,10 @@ public class Sistema {
         Pedido pedido = gerarPedido(cliente);
 
         adiconarItensPedido(pedido);
-        pedido.total = pegarTotal(pedido, cliente);
+        pedido.total = CalculadoraPreco.pegarTotal(pedido, cliente);
         database.adicionarPedido(pedido);
 
         gerarMensagemConfirmacao(pedido);
-    }
-
-    private static double calcularDesconto(double total, Cliente cliente) {
-        if (cliente.tipo == 1) {
-            if (total > 300) {
-                total = total - (total * 0.05);
-            }
-        } else if (cliente.tipo == 2) {
-            if (total > 200) {
-                total = total - (total * 0.10);
-            } else {
-                total = total - (total * 0.03);
-            }
-        } else {
-            total = total - (total * 0.15);
-        }
-
-        return total;
-    }
-
-    private static double calcularFrete(double total) {
-        if (total < 100) {
-            total = total + 25;
-        } else if (total >= 100 && total < 300) {
-            total = total + 15;
-        }
-
-        return total;
-    }
-
-    private static double pegarTotal(Pedido pedido, Cliente cliente) {
-        double total = pedido.calcularPrecoPedido();
-
-        total = calcularDesconto(total, cliente);
-        total = calcularFrete(total);
-        return total;
     }
 
     public void listarPedidos() {
@@ -226,15 +197,7 @@ public class Sistema {
                 }
                 System.out.println("subtotal calculado novamente: " + subtotal);
 
-                if (pedidoEcontrado.cliente.tipo == 1) {
-                    System.out.println("cliente comum");
-                } else if (pedidoEcontrado.cliente.tipo == 2) {
-                    System.out.println("cliente premium");
-                } else if (pedidoEcontrado.cliente.tipo == 3) {
-                    System.out.println("cliente vip");
-                } else {
-                    System.out.println("cliente desconhecido");
-                }
+                System.out.println(pedidoEcontrado.cliente.pegarTipoDesc());
 
                 for (int j = 0; j < pedidoEcontrado.itens.size(); j++) {
                     Item it = pedidoEcontrado.itens.get(j);
