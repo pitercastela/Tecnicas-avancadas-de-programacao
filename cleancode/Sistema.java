@@ -1,12 +1,17 @@
 package cleancode;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Sistema {
 
-    Scanner sc = new Scanner(System.in);
-    Db database = new Db();
+    private Scanner sc = new Scanner(System.in);
+    private PedidoRepositorio database;
+    private Relatorio relatorio;
+
+    public Sistema(PedidoRepositorio repositorio, Relatorio relatorio) {
+        this.database = repositorio;
+        this.relatorio = relatorio;
+    }
 
     public void imprimirMenu() {
         System.out.println("==== SISTEMA ====");
@@ -38,7 +43,7 @@ public class Sistema {
         } else if (op == 3) {
             buscarPedidos();
         } else if (op == 4) {
-            gerarRelatorio();
+            gerarRelatorio(this.relatorio);
         } else if (op == 5) {
             cancelarPedido();
         } else if (op == 0) {
@@ -73,35 +78,10 @@ public class Sistema {
             tipoCliente = 1;
         }
 
-        return gerarCliente(tipoCliente,nomeCliente);
-    }
+        Cliente cliente = ClienteFactory.criar(tipoCliente, nomeCliente);
+        cliente.id = database.pegarId();
 
-    private Cliente gerarCliente(int tipoCliente, String nomeCliente) {
-        Cliente novoCliente;
-
-        if (tipoCliente == 2) {
-            novoCliente = new ClientePremium();
-        } else if (tipoCliente == 3) {
-            novoCliente = new ClienteVip();
-        } else {
-            novoCliente = new ClienteComum();
-        }
-
-        novoCliente.id = database.pegarTodosPedidos().size() + 1;
-        novoCliente.nome = nomeCliente;
-        novoCliente.email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
-
-        return novoCliente;
-    }
-
-    private Pedido gerarPedido(Cliente cliente) {
-        Pedido pedido = new Pedido();
-        pedido.id = database.pegarTodosPedidos().size() + 1;
-        pedido.cliente = cliente;
-        pedido.status = "NOVO";
-        pedido.itens = new ArrayList<>();
-
-        return pedido;
+        return cliente;
     }
 
     private void recolherInformacoesItem(Pedido pedido) {
@@ -123,19 +103,8 @@ public class Sistema {
         } catch (Exception e) {
             quantidade = 1;
         }
-
-        Item item = gerarItem(nomeItem, precoItem, quantidade);
+        Item item = ItemFactory.criar(nomeItem, precoItem, quantidade);
         pedido.itens.add(item);
-
-    }
-
-    private Item gerarItem(String nomeItem, double precoItem, int quantidade) {
-        Item item = new Item();
-        item.nome = nomeItem;
-        item.preco = precoItem;
-        item.qtd = quantidade;
-
-        return item;
     }
 
     private void adiconarItensPedido(Pedido pedido) {
@@ -151,16 +120,18 @@ public class Sistema {
         System.out.println("Pedido criado com sucesso");
         System.out.println("Id: " + pedido.id);
         System.out.println("Cliente: " + pedido.cliente.nome);
-        System.out.println("Total: " + pedido.total);
+        System.out.println("Total: " + pedido.calcularPrecoPedido());
 
-        if (pedido.total > 500) {
+        if (pedido.pedidoGrande()) {
             System.out.println("Pedido importante!!!");
         }
     }
 
     private void criarNovoPedido() {
         Cliente cliente = iniciarCliente();
-        Pedido pedido = gerarPedido(cliente);
+
+        int novoId = database.pegarId();
+        Pedido pedido = PedidoFactory.criar(cliente, novoId);
 
         adiconarItensPedido(pedido);
         pedido.total = CalculadoraPreco.pegarTotal(pedido, cliente);
@@ -182,57 +153,58 @@ public class Sistema {
 
     public void buscarPedidos() {
         System.out.println("Digite o id:");
-        int id = Integer.parseInt(sc.nextLine());
-        boolean achou = false;
+        int id;
+        try {
+            id = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("ID inválido.");
+            return;
+        }
 
-        Pedido pedidoEcontrado = database.pegarPedidoPorId(id);
+        Pedido pedidoEncontrado = database.pegarPedidoPorId(id);
 
-            if (pedidoEcontrado.id == id) {
-                achou = true;
+        if (pedidoEncontrado != null) {
+            System.out.println("=== Detalhes do Pedido Encontrado ===");
+            pedidoEncontrado.exibirPedido();
 
-
-                double subtotal = 0;
-                for (int j = 0; j < pedidoEcontrado.itens.size(); j++) {
-                    subtotal = subtotal + (pedidoEcontrado.itens.get(j).preco * pedidoEcontrado.itens.get(j).qtd);
-                }
-                System.out.println("subtotal calculado novamente: " + subtotal);
-
-                System.out.println(pedidoEcontrado.cliente.pegarTipoDesc());
-
-                for (int j = 0; j < pedidoEcontrado.itens.size(); j++) {
-                    Item it = pedidoEcontrado.itens.get(j);
-                    System.out.println("item " + (j + 1) + ": " + it.nome + " / " + it.qtd + " / " + it.preco);
-                }
-            }
-
-
-        if (!achou) {
-            System.out.println("nao achou");
+            // Se ainda quiser mostrar o subtotal calculado na hora como no original:
+            System.out.println("Subtotal (soma dos itens): " + pedidoEncontrado.calcularPrecoPedido());
+        } else {
+            System.out.println("Pedido não encontrado.");
         }
     }
 
-    public void gerarRelatorio() {
-        Relatorio relatorio = new Relatorio();
-        relatorio.gerarRealtorios(database.pegarTodosPedidos());
+    public void gerarRelatorio(Relatorio relatorio) {
+        if (database.pegarTodosPedidos().isEmpty()) {
+            System.out.println("Não há dados para gerar o relatório.");
+            return;
+        }
+        relatorio.gerar(database.pegarTodosPedidos());
     }
+
+
 
     public void cancelarPedido() {
-        System.out.println("Digite id do pedido");
-        int id = Integer.parseInt(sc.nextLine());
+        System.out.println("Digite id do pedido:");
+        int id;
+        try {
+            id = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("ID inválido.");
+            return;
+        }
+        Pedido pedido = database.pegarPedidoPorId(id);
 
-        for (Pedido pedido : database.pegarTodosPedidos()) {
-            if (pedido.id == id) {
-                if (pedido.status.equals("CANCELADO")) {
-                    System.out.println("ja cancelado");
-                } else {
-                    pedido.status = "CANCELADO";
-                    System.out.println("cancelado");
-                }
-                return;
-            }
+        if (pedido == null) {
+            System.out.println("Pedido não existe.");
+            return;
         }
 
-        System.out.println("pedido nao existe");
+        if (pedido.cancelar()) {
+            System.out.println("Pedido cancelado com sucesso!");
+        } else {
+            System.out.println("Este pedido já estava cancelado.");
+        }
     }
 }
 

@@ -23,10 +23,22 @@ public class Pedido {
         System.out.println("email: " + cliente.email);
         System.out.println("tipo: " + cliente.pegarTipoDesc());
         System.out.println("status: " + status);
-        System.out.println("total: " + total);
+        System.out.println("total: " + calcularPrecoPedido());
         System.out.println("itens:");
         for (Item it : itens) {
             System.out.println(it.nome + " - " + it.qtd + " - " + it.preco);
         }
+    }
+
+    public boolean cancelar() {
+        if ("CANCELADO".equals(this.status)) {
+            return false; // Não foi possível cancelar porque já estava cancelado
+        }
+        this.status = "CANCELADO";
+        return true; // Cancelado com sucesso
+    }
+
+    public boolean pedidoGrande () {
+        return calcularPrecoPedido() > 500;
     }
 }
