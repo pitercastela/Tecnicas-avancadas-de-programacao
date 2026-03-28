@@ -23,7 +23,7 @@ public class Pedido {
         System.out.println("email: " + cliente.email);
         System.out.println("tipo: " + cliente.pegarTipoDesc());
         System.out.println("status: " + status);
-        System.out.println("total: " + calcularPrecoPedido());
+        System.out.println("total: " + total);
         System.out.println("itens:");
         for (Item it : itens) {
             System.out.println(it.nome + " - " + it.qtd + " - " + it.preco);
